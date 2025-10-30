@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Imperial Scents - Perfumes de Luxo</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             box-sizing: border-box;
@@ -149,11 +151,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        .status-pending { background-color: #fef3c7; color: #d97706; }
-        .status-confirmed { background-color: #d1fae5; color: #059669; }
-        .status-completed { background-color: #dbeafe; color: #2563eb; }
-        .status-cancelled { background-color: #fee2e2; color: #dc2626; }
     </style>
 </head>
 <body class="h-full bg-gray-50">
@@ -232,7 +229,7 @@
                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
                     </svg>
-                    
+                    <strong>Senha padrão:</strong> admin123
                 </div>
             </div>
         </div>
@@ -300,7 +297,7 @@
                             <textarea id="order-message" name="orderMessage" rows="4" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent transition-all" placeholder="Descreva seu pedido, quantidade desejada, endereço de entrega..."></textarea>
                         </div>
                         <button type="submit" id="submit-order-btn" class="w-full gradient-bg text-white py-4 rounded-lg font-semibold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg text-lg">
-                            Fazer Pedido
+                            Enviar Pedido
                         </button>
                     </form>
                 </div>
@@ -321,33 +318,13 @@
                         <button onclick="changePassword()" class="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-all">
                             Alterar Senha
                         </button>
-                        <button onclick="exportOrders()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all">
-                            Exportar Pedidos
-                        </button>
                         <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all">
                             Sair
                         </button>
                     </div>
                 </div>
 
-                <!-- Orders Management -->
-                <div class="bg-gray-50 rounded-xl p-6 mb-8 shadow-lg">
-                    <h3 class="text-2xl font-semibold mb-6 gradient-text">Pedidos Recebidos</h3>
-                    <div class="mb-4 flex justify-between items-center">
-                        <div class="flex space-x-2">
-                            <button onclick="filterOrders('all')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Todos</button>
-                            <button onclick="filterOrders('pending')" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Pendentes</button>
-                            <button onclick="filterOrders('confirmed')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Confirmados</button>
-                            <button onclick="filterOrders('completed')" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600">Concluídos</button>
-                        </div>
-                        <div class="text-sm text-gray-600">
-                            Total: <span id="orders-count">0</span> pedidos
-                        </div>
-                    </div>
-                    <div id="orders-list" class="space-y-4">
-                        <!-- Orders will be loaded here -->
-                    </div>
-                </div>
+                <!-- Removida a seção de Configurações de Email -->
 
                 <!-- Theme Customization -->
                 <div class="bg-gray-50 rounded-xl p-6 mb-8 shadow-lg">
@@ -532,6 +509,21 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Orders Management -->
+                <div class="bg-gray-50 rounded-xl p-6 shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-6 gradient-text">Pedidos Recebidos</h3>
+                    <div id="orders-list" class="space-y-4">
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                </svg>
+                            </div>
+                            <p class="text-gray-500">Nenhum pedido recebido ainda.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -580,36 +572,193 @@
             <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
             </svg>
-            <p class="font-medium" id="success-message-text">Operação realizada com sucesso!</p>
+            <p class="font-medium">Operação realizada com sucesso!</p>
         </div>
     </div>
 
     <script>
-        // Data storage - usando localStorage para armazenar tudo localmente
-        let products = JSON.parse(localStorage.getItem('imperial_scents_products')) || [];
-        let orders = JSON.parse(localStorage.getItem('imperial_scents_orders')) || [];
-        let adminPassword = localStorage.getItem('imperial_scents_password') || 'admin123';
+        // Configuração do Supabase
+        const SUPABASE_URL = 'https://vzaihgrbfphrkqldfxem.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6YWloZ3JiZnBocmtxbGRmeGVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5ODA1ODgsImV4cCI6MjA3NjU1NjU4OH0.H_CGoVLTVVcmQPKbzKbaQ4xoBLNwHXibGXsMO_XodSg';
+        
+        // Inicializar cliente Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Data storage
+        let products = [];
+        let orders = [];
+        let nextProductId = 1;
+        let nextOrderId = 1;
+        let adminPassword = 'admin123';
         let isLoggedIn = false;
-        let companyLogo = localStorage.getItem('imperial_scents_logo') || null;
+        let companyLogo = null;
         let selectedLogoFile = null;
-        let companyDescription = localStorage.getItem('imperial_scents_description') || "Descubra nossa coleção exclusiva de fragrâncias que despertam os sentidos e marcam sua presença com elegância e sofisticação.";
-        let currentColors = JSON.parse(localStorage.getItem('imperial_scents_colors')) || {
+        let companyDescription = "Descubra nossa coleção exclusiva de fragrâncias que despertam os sentidos e marcam sua presença com elegância e sofisticação.";
+        let currentColors = {
             primary: '#9333ea',
             secondary: '#ec4899'
         };
 
-        // Função para salvar dados no localStorage
-        function saveToLocalStorage() {
-            localStorage.setItem('imperial_scents_products', JSON.stringify(products));
-            localStorage.setItem('imperial_scents_orders', JSON.stringify(orders));
-            localStorage.setItem('imperial_scents_password', adminPassword);
-            if (companyLogo) {
-                localStorage.setItem('imperial_scents_logo', companyLogo);
+        // Funções para interagir com o Supabase
+
+        // Carregar produtos do Supabase
+        async function loadProductsFromSupabase() {
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .order('id', { ascending: true });
+
+                if (error) {
+                    console.error('Erro ao carregar produtos:', error);
+                    return [];
+                }
+
+                return data || [];
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+                return [];
             }
-            localStorage.setItem('imperial_scents_description', companyDescription);
-            localStorage.setItem('imperial_scents_colors', JSON.stringify(currentColors));
-            localStorage.setItem('imperial_scents_company_name', document.getElementById('company-name').textContent);
-            localStorage.setItem('imperial_scents_logo_text', document.querySelector('#logo-text').textContent);
+        }
+
+        // Salvar produto no Supabase
+        async function saveProductToSupabase(product) {
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .insert([product])
+                    .select();
+
+                if (error) {
+                    console.error('Erro ao salvar produto:', error);
+                    return null;
+                }
+
+                return data ? data[0] : null;
+            } catch (error) {
+                console.error('Erro ao salvar produto:', error);
+                return null;
+            }
+        }
+
+        // Excluir produto do Supabase
+        async function deleteProductFromSupabase(productId) {
+            try {
+                const { error } = await supabase
+                    .from('products')
+                    .delete()
+                    .eq('id', productId);
+
+                if (error) {
+                    console.error('Erro ao excluir produto:', error);
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Erro ao excluir produto:', error);
+                return false;
+            }
+        }
+
+        // Carregar pedidos do Supabase
+        async function loadOrdersFromSupabase() {
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .order('id', { ascending: true });
+
+                if (error) {
+                    console.error('Erro ao carregar pedidos:', error);
+                    return [];
+                }
+
+                return data || [];
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
+                return [];
+            }
+        }
+
+        // Salvar pedido no Supabase
+        async function saveOrderToSupabase(order) {
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .insert([order])
+                    .select();
+
+                if (error) {
+                    console.error('Erro ao salvar pedido:', error);
+                    return null;
+                }
+
+                return data ? data[0] : null;
+            } catch (error) {
+                console.error('Erro ao salvar pedido:', error);
+                return null;
+            }
+        }
+
+        // Carregar configurações do Supabase
+        async function loadSettingsFromSupabase() {
+            try {
+                const { data, error } = await supabase
+                    .from('settings')
+                    .select('*')
+                    .single();
+
+                if (error) {
+                    console.error('Erro ao carregar configurações:', error);
+                    return null;
+                }
+
+                return data;
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+                return null;
+            }
+        }
+
+        // Salvar configurações no Supabase
+        async function saveSettingsToSupabase(settings) {
+            try {
+                // Verificar se já existe uma configuração
+                const existingSettings = await loadSettingsFromSupabase();
+                
+                if (existingSettings) {
+                    // Atualizar configuração existente
+                    const { data, error } = await supabase
+                        .from('settings')
+                        .update(settings)
+                        .eq('id', existingSettings.id)
+                        .select();
+
+                    if (error) {
+                        console.error('Erro ao atualizar configurações:', error);
+                        return null;
+                    }
+
+                    return data ? data[0] : null;
+                } else {
+                    // Criar nova configuração
+                    const { data, error } = await supabase
+                        .from('settings')
+                        .insert([settings])
+                        .select();
+
+                    if (error) {
+                        console.error('Erro ao salvar configurações:', error);
+                        return null;
+                    }
+
+                    return data ? data[0] : null;
+                }
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                return null;
+            }
         }
 
         // Color scheme management
@@ -634,15 +783,12 @@
             const previewButton = document.querySelector('#admin-panel .gradient-bg');
             const previewLink = document.querySelector('#admin-panel .primary-color');
            
-            if (previewLogo) {
-                previewLogo.style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
-            }
-            if (previewTitle) {
-                previewTitle.style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
-                previewTitle.style.webkitBackgroundClip = 'text';
-                previewTitle.style.webkitTextFillColor = 'transparent';
-                previewTitle.style.backgroundClip = 'text';
-            }
+            previewLogo.style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
+            previewTitle.style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
+            previewTitle.style.webkitBackgroundClip = 'text';
+            previewTitle.style.webkitTextFillColor = 'transparent';
+            previewTitle.style.backgroundClip = 'text';
+           
             if (previewButton) {
                 previewButton.style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
             }
@@ -676,7 +822,6 @@
             document.documentElement.style.setProperty('--primary-dark', primaryDark);
             document.documentElement.style.setProperty('--secondary-dark', secondaryDark);
            
-            saveToLocalStorage();
             showSuccessMessage('Esquema de cores aplicado com sucesso!');
         }
 
@@ -703,92 +848,84 @@
         }
 
         // Initialize page
-        function init() {
-            loadDataFromLocalStorage();
+        async function init() {
+            // Carregar dados do Supabase
+            await loadDataFromSupabase();
+            
             loadProducts();
             updatePerfumeSelect();
             updateLogoPreview();
             setupFileUpload();
             loadCompanyDescription();
             setupColorPicker();
-            applySavedColors();
-            
-            // Adicionar alguns produtos de exemplo se estiver vazio
-            if (products.length === 0) {
-                addSampleProducts();
-            }
         }
 
-        // Adicionar produtos de exemplo
-        function addSampleProducts() {
-            const sampleProducts = [
-                {
-                    id: 1,
-                    name: "Noite de Gala",
-                    price: "R$ 249,90",
-                    description: "Uma fragrância sofisticada com notas de jasmim e âmbar, perfeita para ocasiões especiais.",
-                    image: ""
-                },
-                {
-                    id: 2,
-                    name: "Brisa Marinha",
-                    price: "R$ 199,90",
-                    description: "Frescor e leveza com notas cítricas e aquáticas, ideal para o dia a dia.",
-                    image: ""
-                },
-                {
-                    id: 3,
-                    name: "Sedução Oriental",
-                    price: "R$ 299,90",
-                    description: "Notas exóticas de baunilha e especiarias para momentos de sedução.",
-                    image: ""
+        // Carregar todos os dados do Supabase
+        async function loadDataFromSupabase() {
+            // Carregar produtos
+            products = await loadProductsFromSupabase();
+            if (products.length > 0) {
+                nextProductId = Math.max(...products.map(p => p.id)) + 1;
+            }
+
+            // Carregar pedidos
+            orders = await loadOrdersFromSupabase();
+            if (orders.length > 0) {
+                nextOrderId = Math.max(...orders.map(o => o.id)) + 1;
+            }
+
+            // Carregar configurações
+            const settings = await loadSettingsFromSupabase();
+            if (settings) {
+                // Aplicar configurações da empresa
+                if (settings.company_name) {
+                    document.getElementById('company-name').textContent = settings.company_name;
+                    document.getElementById('admin-company-name').value = settings.company_name;
                 }
-            ];
-            
-            products = sampleProducts;
-            saveToLocalStorage();
-            loadProducts();
-            updatePerfumeSelect();
-        }
-
-        // Carregar dados do localStorage
-        function loadDataFromLocalStorage() {
-            // Aplicar configurações da empresa
-            const savedCompanyName = localStorage.getItem('imperial_scents_company_name');
-            if (savedCompanyName) {
-                document.getElementById('company-name').textContent = savedCompanyName;
+                
+                if (settings.logo_text) {
+                    document.getElementById('logo-text').textContent = settings.logo_text;
+                    document.getElementById('admin-logo-text').value = settings.logo_text;
+                    document.getElementById('preview-text').textContent = settings.logo_text;
+                }
+                
+                if (settings.company_description) {
+                    companyDescription = settings.company_description;
+                    document.getElementById('company-description').textContent = companyDescription;
+                    document.getElementById('admin-company-description').value = companyDescription;
+                }
+                
+                if (settings.logo_image) {
+                    companyLogo = settings.logo_image;
+                    updateLogoPreview();
+                }
+                
+                if (settings.primary_color && settings.secondary_color) {
+                    currentColors.primary = settings.primary_color;
+                    currentColors.secondary = settings.secondary_color;
+                    
+                    // Aplicar esquema de cores
+                    document.documentElement.style.setProperty('--primary-color', settings.primary_color);
+                    document.documentElement.style.setProperty('--secondary-color', settings.secondary_color);
+                    
+                    // Calcular tons mais claros e escuros
+                    const primaryLight = lightenColor(settings.primary_color, 10);
+                    const secondaryLight = lightenColor(settings.secondary_color, 10);
+                    const primaryDark = darkenColor(settings.primary_color, 10);
+                    const secondaryDark = darkenColor(settings.secondary_color, 10);
+                    
+                    document.documentElement.style.setProperty('--primary-light', primaryLight);
+                    document.documentElement.style.setProperty('--secondary-light', secondaryLight);
+                    document.documentElement.style.setProperty('--primary-dark', primaryDark);
+                    document.documentElement.style.setProperty('--secondary-dark', secondaryDark);
+                }
             }
-            
-            const savedLogoText = localStorage.getItem('imperial_scents_logo_text');
-            if (savedLogoText) {
-                document.getElementById('logo-text').textContent = savedLogoText;
-            }
-            
-            // Aplicar esquema de cores salvo
-            applySavedColors();
-        }
-
-        function applySavedColors() {
-            document.documentElement.style.setProperty('--primary-color', currentColors.primary);
-            document.documentElement.style.setProperty('--secondary-color', currentColors.secondary);
-            
-            const primaryLight = lightenColor(currentColors.primary, 10);
-            const secondaryLight = lightenColor(currentColors.secondary, 10);
-            const primaryDark = darkenColor(currentColors.primary, 10);
-            const secondaryDark = darkenColor(currentColors.secondary, 10);
-            
-            document.documentElement.style.setProperty('--primary-light', primaryLight);
-            document.documentElement.style.setProperty('--secondary-light', secondaryLight);
-            document.documentElement.style.setProperty('--primary-dark', primaryDark);
-            document.documentElement.style.setProperty('--secondary-dark', secondaryDark);
         }
 
         // Load company description
         function loadCompanyDescription() {
             document.getElementById('company-description').textContent = companyDescription;
-            if (document.getElementById('admin-company-description')) {
-                document.getElementById('admin-company-description').value = companyDescription;
-            }
+            document.getElementById('admin-company-description').value = companyDescription;
         }
 
         // Setup file upload functionality
@@ -796,29 +933,27 @@
             const fileUploadArea = document.getElementById('file-upload-area');
             const fileInput = document.getElementById('logo-file-input');
 
-            if (fileUploadArea && fileInput) {
-                fileUploadArea.addEventListener('click', () => fileInput.click());
-                fileInput.addEventListener('change', handleLogoFileSelect);
-               
-                // Drag and drop for logo
-                fileUploadArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    fileUploadArea.classList.add('dragover');
-                });
-               
-                fileUploadArea.addEventListener('dragleave', () => {
-                    fileUploadArea.classList.remove('dragover');
-                });
-               
-                fileUploadArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    fileUploadArea.classList.remove('dragover');
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        handleLogoFile(files[0]);
-                    }
-                });
-            }
+            fileUploadArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleLogoFileSelect);
+           
+            // Drag and drop for logo
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.add('dragover');
+            });
+           
+            fileUploadArea.addEventListener('dragleave', () => {
+                fileUploadArea.classList.remove('dragover');
+            });
+           
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleLogoFile(files[0]);
+                }
+            });
         }
 
         // Handle logo file selection
@@ -843,24 +978,20 @@
            
             selectedLogoFile = file;
            
-            if (document.getElementById('upload-content') && document.getElementById('file-info')) {
-                document.getElementById('upload-content').classList.add('hidden');
-                document.getElementById('file-info').classList.remove('hidden');
-                document.getElementById('file-name').textContent = file.name;
-            }
+            document.getElementById('upload-content').classList.add('hidden');
+            document.getElementById('file-info').classList.remove('hidden');
+            document.getElementById('file-name').textContent = file.name;
            
             const reader = new FileReader();
             reader.onload = function(e) {
                 const previewImage = document.getElementById('preview-image');
                 const previewText = document.getElementById('preview-text');
                
-                if (previewImage && previewText) {
-                    previewImage.src = e.target.result;
-                    previewImage.onload = function() {
-                        previewText.classList.add('hidden');
-                        this.classList.remove('hidden');
-                    };
-                }
+                previewImage.src = e.target.result;
+                previewImage.onload = function() {
+                    previewText.classList.add('hidden');
+                    this.classList.remove('hidden');
+                };
             };
             reader.readAsDataURL(file);
         }
@@ -906,18 +1037,16 @@
                 const previewImage = document.getElementById('preview-image');
                 const previewText = document.getElementById('preview-text');
                
-                if (previewImage && previewText) {
-                    previewImage.src = logoUrl;
-                    previewImage.onerror = function() {
-                        showSuccessMessage('Erro ao carregar a imagem. Verifique a URL.');
-                        this.classList.add('hidden');
-                        previewText.classList.remove('hidden');
-                    };
-                    previewImage.onload = function() {
-                        previewText.classList.add('hidden');
-                        this.classList.remove('hidden');
-                    };
-                }
+                previewImage.src = logoUrl;
+                previewImage.onerror = function() {
+                    showSuccessMessage('Erro ao carregar a imagem. Verifique a URL.');
+                    this.classList.add('hidden');
+                    previewText.classList.remove('hidden');
+                };
+                previewImage.onload = function() {
+                    previewText.classList.add('hidden');
+                    this.classList.remove('hidden');
+                };
             }
         }
 
@@ -925,17 +1054,13 @@
             const previewImage = document.getElementById('preview-image');
             const previewText = document.getElementById('preview-text');
            
-            if (previewImage && previewText) {
-                previewImage.classList.add('hidden');
-                previewText.classList.remove('hidden');
-            }
+            previewImage.classList.add('hidden');
+            previewText.classList.remove('hidden');
             document.getElementById('logo-url').value = '';
             selectedLogoFile = null;
            
-            if (document.getElementById('upload-content') && document.getElementById('file-info')) {
-                document.getElementById('upload-content').classList.remove('hidden');
-                document.getElementById('file-info').classList.add('hidden');
-            }
+            document.getElementById('upload-content').classList.remove('hidden');
+            document.getElementById('file-info').classList.add('hidden');
             document.getElementById('logo-file-input').value = '';
         }
 
@@ -945,22 +1070,20 @@
             const previewText = document.getElementById('preview-text');
             const previewImage = document.getElementById('preview-image');
            
-            if (logoText && logoImage && previewText && previewImage) {
-                if (companyLogo) {
-                    logoImage.src = companyLogo;
-                    logoImage.classList.remove('hidden');
-                    logoText.classList.add('hidden');
-                   
-                    previewImage.src = companyLogo;
-                    previewImage.classList.remove('hidden');
-                    previewText.classList.add('hidden');
-                } else {
-                    logoImage.classList.add('hidden');
-                    logoText.classList.remove('hidden');
-                   
-                    previewImage.classList.add('hidden');
-                    previewText.classList.remove('hidden');
-                }
+            if (companyLogo) {
+                logoImage.src = companyLogo;
+                logoImage.classList.remove('hidden');
+                logoText.classList.add('hidden');
+               
+                previewImage.src = companyLogo;
+                previewImage.classList.remove('hidden');
+                previewText.classList.add('hidden');
+            } else {
+                logoImage.classList.add('hidden');
+                logoText.classList.remove('hidden');
+               
+                previewImage.classList.add('hidden');
+                previewText.classList.remove('hidden');
             }
         }
 
@@ -977,11 +1100,9 @@
             } else {
                 const errorDiv = document.getElementById('login-error');
                 const modal = document.querySelector('#login-modal .bg-white');
-                if (errorDiv && modal) {
-                    errorDiv.classList.remove('hidden');
-                    modal.classList.add('shake');
-                    setTimeout(() => modal.classList.remove('shake'), 500);
-                }
+                errorDiv.classList.remove('hidden');
+                modal.classList.add('shake');
+                setTimeout(() => modal.classList.remove('shake'), 500);
             }
         });
 
@@ -995,31 +1116,24 @@
             const errorDiv = document.getElementById('password-error');
            
             if (currentPassword !== adminPassword) {
-                if (errorDiv) {
-                    errorDiv.textContent = 'Senha atual incorreta.';
-                    errorDiv.classList.remove('hidden');
-                }
+                errorDiv.textContent = 'Senha atual incorreta.';
+                errorDiv.classList.remove('hidden');
                 return;
             }
            
             if (newPassword.length < 6) {
-                if (errorDiv) {
-                    errorDiv.textContent = 'A nova senha deve ter pelo menos 6 caracteres.';
-                    errorDiv.classList.remove('hidden');
-                }
+                errorDiv.textContent = 'A nova senha deve ter pelo menos 6 caracteres.';
+                errorDiv.classList.remove('hidden');
                 return;
             }
            
             if (newPassword !== confirmPassword) {
-                if (errorDiv) {
-                    errorDiv.textContent = 'As senhas não coincidem.';
-                    errorDiv.classList.remove('hidden');
-                }
+                errorDiv.textContent = 'As senhas não coincidem.';
+                errorDiv.classList.remove('hidden');
                 return;
             }
            
             adminPassword = newPassword;
-            saveToLocalStorage();
             hidePasswordModal();
             showSuccessMessage('Senha alterada com sucesso!');
         });
@@ -1029,11 +1143,9 @@
             const panel = document.getElementById('admin-panel');
             const mainContent = document.getElementById('main-content');
            
-            if (panel && mainContent) {
-                panel.classList.remove('hidden');
-                mainContent.style.display = 'none';
-                loadAdminData();
-            }
+            panel.classList.remove('hidden');
+            mainContent.style.display = 'none';
+            loadAdminData();
         }
 
         // Logout
@@ -1042,27 +1154,23 @@
             const panel = document.getElementById('admin-panel');
             const mainContent = document.getElementById('main-content');
            
-            if (panel && mainContent) {
-                panel.classList.add('hidden');
-                mainContent.style.display = 'block';
-            }
+            panel.classList.add('hidden');
+            mainContent.style.display = 'block';
         }
 
         // Load admin data
         function loadAdminData() {
-            if (document.getElementById('admin-company-name')) {
-                document.getElementById('admin-company-name').value = document.getElementById('company-name').textContent;
-                document.getElementById('admin-logo-text').value = document.querySelector('#logo-text').textContent;
-                document.getElementById('admin-company-description').value = companyDescription;
-                document.getElementById('logo-url').value = (companyLogo && !companyLogo.startsWith('data:')) ? companyLogo : '';
-                updateLogoPreview();
-                loadOrders();
-                loadAdminProducts();
-            }
+            document.getElementById('admin-company-name').value = document.getElementById('company-name').textContent;
+            document.getElementById('admin-logo-text').value = document.querySelector('#logo-text').textContent;
+            document.getElementById('admin-company-description').value = companyDescription;
+            document.getElementById('logo-url').value = (companyLogo && !companyLogo.startsWith('data:')) ? companyLogo : '';
+            updateLogoPreview();
+            loadOrders();
+            loadAdminProducts();
         }
 
         // Update company information
-        function updateCompanyInfo() {
+        async function updateCompanyInfo() {
             const newName = document.getElementById('admin-company-name').value;
             const newLogoText = document.getElementById('admin-logo-text').value;
             const newDescription = document.getElementById('admin-company-description').value;
@@ -1070,19 +1178,16 @@
            
             if (newName) {
                 document.getElementById('company-name').textContent = newName;
-                localStorage.setItem('imperial_scents_company_name', newName);
             }
            
             if (newLogoText) {
                 document.querySelector('#logo-text').textContent = newLogoText.toUpperCase();
                 document.getElementById('preview-text').textContent = newLogoText.toUpperCase();
-                localStorage.setItem('imperial_scents_logo_text', newLogoText.toUpperCase());
             }
 
             if (newDescription) {
                 companyDescription = newDescription;
                 document.getElementById('company-description').textContent = companyDescription;
-                localStorage.setItem('imperial_scents_description', companyDescription);
             }
            
             if (selectedLogoFile) {
@@ -1090,20 +1195,38 @@
                 reader.onload = function(e) {
                     companyLogo = e.target.result;
                     updateLogoPreview();
-                    localStorage.setItem('imperial_scents_logo', companyLogo);
-                    saveToLocalStorage();
+                    saveSettingsToSupabase({
+                        company_name: newName || document.getElementById('company-name').textContent,
+                        logo_text: newLogoText || document.querySelector('#logo-text').textContent,
+                        company_description: newDescription || companyDescription,
+                        logo_image: companyLogo,
+                        primary_color: currentColors.primary,
+                        secondary_color: currentColors.secondary
+                    });
                 };
                 reader.readAsDataURL(selectedLogoFile);
             } else if (logoUrl) {
                 companyLogo = logoUrl;
                 updateLogoPreview();
-                localStorage.setItem('imperial_scents_logo', companyLogo);
-                saveToLocalStorage();
+                await saveSettingsToSupabase({
+                    company_name: newName || document.getElementById('company-name').textContent,
+                    logo_text: newLogoText || document.querySelector('#logo-text').textContent,
+                    company_description: newDescription || companyDescription,
+                    logo_image: companyLogo,
+                    primary_color: currentColors.primary,
+                    secondary_color: currentColors.secondary
+                });
             } else {
                 companyLogo = null;
                 updateLogoPreview();
-                localStorage.removeItem('imperial_scents_logo');
-                saveToLocalStorage();
+                await saveSettingsToSupabase({
+                    company_name: newName || document.getElementById('company-name').textContent,
+                    logo_text: newLogoText || document.querySelector('#logo-text').textContent,
+                    company_description: newDescription || companyDescription,
+                    logo_image: companyLogo,
+                    primary_color: currentColors.primary,
+                    secondary_color: currentColors.secondary
+                });
             }
            
             showSuccessMessage('Informações da empresa atualizadas com sucesso!');
@@ -1112,8 +1235,6 @@
         // Load products
         function loadProducts() {
             const grid = document.getElementById('products-grid');
-            if (!grid) return;
-            
             grid.innerHTML = '';
            
             products.forEach(product => {
@@ -1125,8 +1246,6 @@
         // Load admin products
         function loadAdminProducts() {
             const list = document.getElementById('admin-products-list');
-            if (!list) return;
-            
             list.innerHTML = '';
            
             if (products.length === 0) {
@@ -1207,19 +1326,14 @@
 
         // Select perfume for order
         function selectPerfume(perfumeName) {
-            const select = document.getElementById('perfume-select');
-            if (select) {
-                select.value = perfumeName;
-                document.getElementById('contact').scrollIntoView({behavior: 'smooth'});
-                document.getElementById('customer-name').focus();
-            }
+            document.getElementById('perfume-select').value = perfumeName;
+            document.getElementById('contact').scrollIntoView({behavior: 'smooth'});
+            document.getElementById('customer-name').focus();
         }
 
         // Update perfume select options
         function updatePerfumeSelect() {
             const select = document.getElementById('perfume-select');
-            if (!select) return;
-            
             select.innerHTML = '<option value="">Selecione um perfume</option>';
            
             products.forEach(product => {
@@ -1231,7 +1345,7 @@
         }
 
         // Add product
-        document.getElementById('add-product-form').addEventListener('submit', function(e) {
+        document.getElementById('add-product-form').addEventListener('submit', async function(e) {
             e.preventDefault();
            
             const name = document.getElementById('product-name').value;
@@ -1241,7 +1355,6 @@
             const imageFile = document.getElementById('product-file-input').files[0];
            
             const newProduct = {
-                id: Date.now(),
                 name: name,
                 price: price,
                 description: description,
@@ -1250,83 +1363,87 @@
            
             if (imageFile) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = async function(e) {
                     newProduct.image = e.target.result;
-                    products.push(newProduct);
-                    saveToLocalStorage();
-                    loadProducts();
-                    updatePerfumeSelect();
-                    loadAdminProducts();
-                    showSuccessMessage('Produto adicionado com sucesso!');
+                    const savedProduct = await saveProductToSupabase(newProduct);
+                    if (savedProduct) {
+                        products.push(savedProduct);
+                        loadProducts();
+                        updatePerfumeSelect();
+                        loadAdminProducts();
+                        showSuccessMessage('Produto adicionado com sucesso!');
+                    } else {
+                        showSuccessMessage('Erro ao adicionar produto. Tente novamente.');
+                    }
                 };
                 reader.readAsDataURL(imageFile);
             } else if (imageUrl) {
                 newProduct.image = imageUrl;
-                products.push(newProduct);
-                saveToLocalStorage();
-                loadProducts();
-                updatePerfumeSelect();
-                loadAdminProducts();
-                showSuccessMessage('Produto adicionado com sucesso!');
+                const savedProduct = await saveProductToSupabase(newProduct);
+                if (savedProduct) {
+                    products.push(savedProduct);
+                    loadProducts();
+                    updatePerfumeSelect();
+                    loadAdminProducts();
+                    showSuccessMessage('Produto adicionado com sucesso!');
+                } else {
+                    showSuccessMessage('Erro ao adicionar produto. Tente novamente.');
+                }
             } else {
-                products.push(newProduct);
-                saveToLocalStorage();
-                loadProducts();
-                updatePerfumeSelect();
-                loadAdminProducts();
-                showSuccessMessage('Produto adicionado com sucesso!');
+                const savedProduct = await saveProductToSupabase(newProduct);
+                if (savedProduct) {
+                    products.push(savedProduct);
+                    loadProducts();
+                    updatePerfumeSelect();
+                    loadAdminProducts();
+                    showSuccessMessage('Produto adicionado com sucesso!');
+                } else {
+                    showSuccessMessage('Erro ao adicionar produto. Tente novamente.');
+                }
             }
            
             this.reset();
         });
 
         // Delete product
-        function deleteProduct(productId) {
-            if (confirm('Tem certeza que deseja excluir este produto?')) {
+        async function deleteProduct(productId) {
+            const success = await deleteProductFromSupabase(productId);
+            if (success) {
                 products = products.filter(product => product.id !== productId);
-                saveToLocalStorage();
                 loadProducts();
                 updatePerfumeSelect();
                 loadAdminProducts();
                 showSuccessMessage('Produto excluído com sucesso!');
+            } else {
+                showSuccessMessage('Erro ao excluir produto. Tente novamente.');
             }
         }
 
-        // Handle order form - AGORA SALVA LOCALMENTE
-        document.getElementById('order-form').addEventListener('submit', function(e) {
+        // Handle order form
+        document.getElementById('order-form').addEventListener('submit', async function(e) {
             e.preventDefault();
            
             const submitBtn = document.getElementById('submit-order-btn');
             const originalText = submitBtn.innerHTML;
            
             // Show loading state
-            submitBtn.innerHTML = '<div class="loading"></div> Enviando...';
+            submitBtn.innerHTML = '<div class="loading"></div>';
             submitBtn.disabled = true;
            
             const formData = new FormData(this);
             const order = {
-                id: Date.now(),
                 customerName: formData.get('customerName'),
                 customerEmail: formData.get('customerEmail'),
                 customerPhone: formData.get('customerPhone'),
                 perfumeSelect: formData.get('perfumeSelect'),
                 orderMessage: formData.get('orderMessage'),
-                date: new Date().toLocaleString('pt-BR'),
-                status: 'pending'
+                date: new Date().toLocaleString('pt-BR')
             };
-
-            // Validar se todos os campos estão preenchidos
-            if (!order.customerName || !order.customerEmail || !order.customerPhone || !order.perfumeSelect || !order.orderMessage) {
-                showSuccessMessage('Por favor, preencha todos os campos obrigatórios.');
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                return;
-            }
            
-            try {
-                // Salvar pedido localmente
-                orders.push(order);
-                saveToLocalStorage();
+            // Salvar pedido no Supabase
+            const savedOrder = await saveOrderToSupabase(order);
+            if (savedOrder) {
+                orders.push(savedOrder);
                
                 this.reset();
                
@@ -1334,27 +1451,20 @@
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
                
-                showSuccessMessage('Pedido realizado com sucesso! Entraremos em contato em breve.');
-            } catch (error) {
-                console.error('Erro ao processar pedido:', error);
+                showSuccessMessage('Pedido enviado com sucesso! Entraremos em contato em breve.');
+            } else {
+                // Restore button state
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
-                showSuccessMessage('Erro ao processar pedido. Tente novamente.');
+                showSuccessMessage('Erro ao enviar pedido. Tente novamente.');
             }
         });
 
         // Load orders in admin
-        function loadOrders(filter = 'all') {
+        async function loadOrders() {
             const ordersList = document.getElementById('orders-list');
-            if (!ordersList) return;
            
-            let filteredOrders = orders;
-            
-            if (filter !== 'all') {
-                filteredOrders = orders.filter(order => order.status === filter);
-            }
-           
-            if (filteredOrders.length === 0) {
+            if (orders.length === 0) {
                 ordersList.innerHTML = `
                     <div class="text-center py-8">
                         <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1362,7 +1472,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                             </svg>
                         </div>
-                        <p class="text-gray-500">Nenhum pedido ${filter !== 'all' ? 'com este status' : ''} recebido ainda.</p>
+                        <p class="text-gray-500">Nenhum pedido recebido ainda.</p>
                     </div>
                 `;
                 return;
@@ -1370,7 +1480,7 @@
            
             ordersList.innerHTML = '';
            
-            filteredOrders.forEach(order => {
+            orders.forEach(order => {
                 const orderCard = document.createElement('div');
                 orderCard.className = 'bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-all';
                 orderCard.innerHTML = `
@@ -1379,17 +1489,7 @@
                             <h4 class="font-semibold text-lg text-gray-800">Pedido #${order.id}</h4>
                             <span class="text-sm text-gray-500">${order.date}</span>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <select onchange="updateOrderStatus(${order.id}, this.value)" class="text-sm px-3 py-1 rounded-full border">
-                                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendente</option>
-                                <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confirmado</option>
-                                <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Concluído</option>
-                                <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelado</option>
-                            </select>
-                            <button onclick="deleteOrder(${order.id})" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 text-sm">
-                                Excluir
-                            </button>
-                        </div>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Novo</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                         <div class="space-y-2">
@@ -1399,11 +1499,6 @@
                         </div>
                         <div>
                             <p><span class="font-medium text-gray-700">Perfume:</span> ${order.perfumeSelect}</p>
-                            <p><span class="font-medium text-gray-700">Status:</span> 
-                                <span class="px-2 py-1 rounded-full text-xs status-${order.status}">
-                                    ${getStatusText(order.status)}
-                                </span>
-                            </p>
                         </div>
                     </div>
                     <div class="mt-4">
@@ -1413,108 +1508,21 @@
                 `;
                 ordersList.appendChild(orderCard);
             });
-
-            // Atualizar contador
-            document.getElementById('orders-count').textContent = orders.length;
-        }
-
-        function getStatusText(status) {
-            const statusMap = {
-                'pending': 'Pendente',
-                'confirmed': 'Confirmado',
-                'completed': 'Concluído',
-                'cancelled': 'Cancelado'
-            };
-            return statusMap[status] || 'Pendente';
-        }
-
-        function filterOrders(status) {
-            loadOrders(status);
-        }
-
-        function updateOrderStatus(orderId, newStatus) {
-            const orderIndex = orders.findIndex(order => order.id === orderId);
-            if (orderIndex !== -1) {
-                orders[orderIndex].status = newStatus;
-                saveToLocalStorage();
-                showSuccessMessage('Status do pedido atualizado com sucesso!');
-                loadOrders(); // Recarregar para mostrar o filtro atual
-            }
-        }
-
-        function deleteOrder(orderId) {
-            if (confirm('Tem certeza que deseja excluir este pedido?')) {
-                orders = orders.filter(order => order.id !== orderId);
-                saveToLocalStorage();
-                showSuccessMessage('Pedido excluído com sucesso!');
-                loadOrders();
-            }
-        }
-
-        // Export orders to CSV
-        function exportOrders() {
-            if (orders.length === 0) {
-                showSuccessMessage('Não há pedidos para exportar.');
-                return;
-            }
-
-            const csvHeaders = ['ID', 'Data', 'Cliente', 'Email', 'Telefone', 'Perfume', 'Status', 'Mensagem'];
-            const csvData = orders.map(order => [
-                order.id,
-                order.date,
-                order.customerName,
-                order.customerEmail,
-                order.customerPhone,
-                order.perfumeSelect,
-                getStatusText(order.status),
-                `"${order.orderMessage.replace(/"/g, '""')}"`
-            ]);
-
-            const csvContent = [csvHeaders, ...csvData]
-                .map(row => row.join(','))
-                .join('\n');
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `pedidos_imperial_scents_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showSuccessMessage('Pedidos exportados com sucesso!');
         }
 
         // Show success message
         function showSuccessMessage(message) {
             const successMsg = document.getElementById('success-message');
-            const successText = document.getElementById('success-message-text');
-            
-            if (!successMsg || !successText) return;
-            
-            // Verificar se é uma mensagem de erro
-            if (message.includes('Erro') || message.includes('problema') || message.includes('incorreto')) {
-                successMsg.classList.remove('bg-green-500');
-                successMsg.classList.add('bg-red-500');
-            } else {
-                successMsg.classList.remove('bg-red-500');
-                successMsg.classList.add('bg-green-500');
-            }
-            
-            successText.textContent = message;
+            successMsg.querySelector('p').textContent = message;
             successMsg.classList.remove('hidden');
            
             setTimeout(() => {
                 successMsg.classList.add('hidden');
-            }, 5000);
+            }, 4000);
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            init();
-        });
+        init();
     </script>
 </body>
 </html>
