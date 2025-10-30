@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperial Scents - Perfumes de Luxo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+       
+        :root {
+            --primary-color: #0891b2;
+            --secondary-color: #2bbdf7;
+            --primary-light: #4656e9;
+            --secondary-light: #68c6f5;
+            --primary-dark: #3f67eb;
+            --secondary-dark: #5be2aa;
+        }
+       
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .perfume-card {
+            transition: all 0.3s ease;
+        }
+        .perfume-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .logo-preview {
+            transition: all 0.3s ease;
+        }
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+        }
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: #f3f4f6;
+        }
+        .file-upload-area.dragover {
+            border-color: var(--primary-color);
+            background-color: #ede9fe;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .primary-color { color: var(--primary-color); }
+        .primary-bg { background-color: var(--primary-color); }
+        .primary-border { border-color: var(--primary-color); }
+        .secondary-color { color: var(--secondary-color); }
+        .secondary-bg { background-color: var(--secondary-color); }
+        .hover-primary:hover { background-color: var(--primary-dark); }
+        .hover-secondary:hover { background-color: var(--secondary-dark); }
+        .focus-primary:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+        }
+       
+        .color-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+       
+        .color-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+       
+        .color-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+       
+        .color-option.selected {
+            border-color: #374151;
+            transform: scale(1.1);
+        }
+       
+        .color-option::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+       
+        .color-option.selected::after {
+            opacity: 1;
+        }
+       
+        .hero-bg {
+            background: linear-gradient(135deg,
+                color-mix(in srgb, var(--primary-color) 20%, white),
+                color-mix(in srgb, var(--secondary-color) 15%, white),
+                color-mix(in srgb, var(--primary-color) 20%, white)
+            );
+        }
+       
+        .contact-bg {
+            background: linear-gradient(135deg,
+                color-mix(in srgb, var(--primary-color) 20%, white),
+                color-mix(in srgb, var(--secondary-color) 15%, white),
+                color-mix(in srgb, var(--primary-color) 20%, white)
+            );
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-pending { background-color: #fef3c7; color: #d97706; }
+        .status-confirmed { background-color: #d1fae5; color: #059669; }
+        .status-completed { background-color: #dbeafe; color: #2563eb; }
+        .status-cancelled { background-color: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+<body class="h-full bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div id="company-logo" class="w-12 h-12 gradient-bg rounded-full flex items-center justify-center overflow-hidden">
+                        <span id="logo-text" class="text-white font-bold text-xl">IS</span>
+                        <img id="logo-image" src="" alt="Logo" class="w-full h-full object-cover hidden">
+                    </div>
+                    <h1 id="company-name" class="text-2xl font-bold gradient-text">Imperial Scents</h1>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#home" class="primary-color hover:opacity-80 transition-colors font-medium">Início</a>
+                    <a href="#products" class="primary-color hover:opacity-80 transition-colors font-medium">Produtos</a>
+                    <a href="#contact" class="primary-color hover:opacity-80 transition-colors font-medium">Contato</a>
+                    <button onclick="showLoginModal()" class="primary-color hover:opacity-80 font-medium transition-colors bg-purple-100 px-3 py-1 rounded-lg">Admin</button>
+                </nav>
+                <button class="md:hidden" onclick="toggleMobileMenu()">
+                    <svg class="w-6 h-6 primary-color" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg">
+        <div class="px-4 py-2 space-y-2">
+            <a href="#home" class="block py-2 text-gray-700 primary-color">Início</a>
+            <a href="#products" class="block py-2 text-gray-700 primary-color">Produtos</a>
+            <a href="#contact" class="block py-2 text-gray-700 primary-color">Contato</a>
+            <button onclick="showLoginModal()" class="block py-2 primary-color font-medium">Admin</button>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800">Acesso Administrativo</h3>
+                <p class="text-gray-600 mt-2">Entre com sua senha para gerenciar o site</p>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="admin-password" class="block text-sm font-medium text-gray-700 mb-2">Senha de Administrador</label>
+                    <input type="password" id="admin-password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent transition-all">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 gradient-bg text-white py-3 rounded-lg hover:opacity-90 transition-all font-medium">
+                        Entrar
+                    </button>
+                    <button type="button" onclick="hideLoginModal()" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+            <div id="login-error" class="hidden mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    Senha incorreta. Tente novamente.
+                </div>
+            </div>
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-sm">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Hero Section -->
+        <section id="home" class="hero-bg py-20 px-4">
+            <div class="max-w-7xl mx-auto text-center">
+                <h2 class="text-6xl font-bold text-gray-800 mb-6 fade-in">Perfumes de Luxo</h2>
+                <p id="company-description" class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto fade-in leading-relaxed">Descubra nossa coleção exclusiva de fragrâncias que despertam os sentidos e marcam sua presença com elegância e sofisticação.</p>
+                <button onclick="document.getElementById('products').scrollIntoView({behavior: 'smooth'})" class="gradient-bg text-white px-10 py-4 rounded-full text-lg font-semibold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
+                    Explorar Coleção
+                </button>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section id="products" class="py-20 px-4 bg-white">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-5xl font-bold gradient-text mb-4">Nossa Coleção</h2>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">Fragrâncias únicas criadas para momentos especiais</p>
+                </div>
+                <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="contact-bg py-20 px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-5xl font-bold gradient-text mb-4">Faça Seu Pedido</h2>
+                    <p class="text-xl text-gray-600">Entre em contato conosco para adquirir sua fragrância favorita</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-2xl p-8">
+                    <form id="order-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="customer-name" class="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
+                                <input type="text" id="customer-name" name="customerName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent transition-all">
+                            </div>
+                            <div>
+                                <label for="customer-email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input type="email" id="customer-email" name="customerEmail" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent transition-all">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="customer-phone" class="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+                                <input type="tel" id="customer-phone" name="customerPhone" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent transition-all">
+                            </div>
+                            <div>
+                                <label for="perfume-select" class="block text-sm font-medium text-gray-700 mb-2">Perfume Desejado</label>
+                                <select id="perfume-select" name="perfumeSelect" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent transition-all">
+                                    <option value="">Selecione um perfume</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="order-message" class="block text-sm font-medium text-gray-700 mb-2">Mensagem / Detalhes do Pedido</label>
+                            <textarea id="order-message" name="orderMessage" rows="4" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent transition-all" placeholder="Descreva seu pedido, quantidade desejada, endereço de entrega..."></textarea>
+                        </div>
+                        <button type="submit" id="submit-order-btn" class="w-full gradient-bg text-white py-4 rounded-lg font-semibold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg text-lg">
+                            Fazer Pedido
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="bg-white w-full h-full overflow-y-auto">
+            <div class="max-w-7xl mx-auto p-6">
+                <div class="flex justify-between items-center mb-8 bg-gradient-to-r from-purple-600 to-pink-500 text-white p-6 rounded-xl">
+                    <div>
+                        <h2 class="text-3xl font-bold">Painel Administrativo</h2>
+                        <p class="text-purple-100 mt-1">Gerencie seu site Imperial Scents</p>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button onclick="changePassword()" class="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-all">
+                            Alterar Senha
+                        </button>
+                        <button onclick="exportOrders()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all">
+                            Exportar Pedidos
+                        </button>
+                        <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all">
+                            Sair
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Orders Management -->
+                <div class="bg-gray-50 rounded-xl p-6 mb-8 shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-6 gradient-text">Pedidos Recebidos</h3>
+                    <div class="mb-4 flex justify-between items-center">
+                        <div class="flex space-x-2">
+                            <button onclick="filterOrders('all')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Todos</button>
+                            <button onclick="filterOrders('pending')" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Pendentes</button>
+                            <button onclick="filterOrders('confirmed')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Confirmados</button>
+                            <button onclick="filterOrders('completed')" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600">Concluídos</button>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            Total: <span id="orders-count">0</span> pedidos
+                        </div>
+                    </div>
+                    <div id="orders-list" class="space-y-4">
+                        <!-- Orders will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Theme Customization -->
+                <div class="bg-gray-50 rounded-xl p-6 mb-8 shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-6 gradient-text">Personalização Visual</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="text-lg font-medium mb-4 text-gray-800">Esquema de Cores do Site</h4>
+                            <p class="text-sm text-gray-600 mb-4">Escolha uma combinação de cores para personalizar todo o site</p>
+                            <div class="color-picker-grid">
+                                <div class="color-option selected" data-primary="#9333ea" data-secondary="#ec4899" style="background: linear-gradient(135deg, #9333ea, #ec4899);" title="Roxo & Rosa"></div>
+                                <div class="color-option" data-primary="#2563eb" data-secondary="#06b6d4" style="background: linear-gradient(135deg, #2563eb, #06b6d4);" title="Azul & Ciano"></div>
+                                <div class="color-option" data-primary="#059669" data-secondary="#10b981" style="background: linear-gradient(135deg, #059669, #10b981);" title="Verde & Esmeralda"></div>
+                                <div class="color-option" data-primary="#ea580c" data-secondary="#dc2626" style="background: linear-gradient(135deg, #ea580c, #dc2626);" title="Laranja & Vermelho"></div>
+                                <div class="color-option" data-primary="#4f46e5" data-secondary="#7c3aed" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);" title="Índigo & Roxo"></div>
+                                <div class="color-option" data-primary="#0d9488" data-secondary="#0ea5e9" style="background: linear-gradient(135deg, #0d9488, #0ea5e9);" title="Verde-azulado & Azul"></div>
+                                <div class="color-option" data-primary="#e11d48" data-secondary="#f472b6" style="background: linear-gradient(135deg, #e11d48, #f472b6);" title="Rosa & Rosa Claro"></div>
+                                <div class="color-option" data-primary="#d97706" data-secondary="#eab308" style="background: linear-gradient(135deg, #d97706, #eab308);" title="Âmbar & Amarelo"></div>
+                                <div class="color-option" data-primary="#475569" data-secondary="#6b7280" style="background: linear-gradient(135deg, #475569, #6b7280);" title="Ardósia & Cinza"></div>
+                                <div class="color-option" data-primary="#7c2d12" data-secondary="#a21caf" style="background: linear-gradient(135deg, #7c2d12, #a21caf);" title="Violeta & Fúcsia"></div>
+                                <div class="color-option" data-primary="#047857" data-secondary="#65a30d" style="background: linear-gradient(135deg, #047857, #65a30d);" title="Esmeralda & Lima"></div>
+                                <div class="color-option" data-primary="#0284c7" data-secondary="#0891b2" style="background: linear-gradient(135deg, #0284c7, #0891b2);" title="Céu & Ciano"></div>
+                            </div>
+                            <button onclick="applyColorScheme()" class="mt-6 gradient-bg text-white px-6 py-3 rounded-lg hover:opacity-90 transition-all font-medium shadow-lg">
+                                Aplicar Cores
+                            </button>
+                        </div>
+                       
+                        <div>
+                            <h4 class="text-lg font-medium mb-4 text-gray-800">Preview das Cores</h4>
+                            <div class="bg-white p-6 rounded-xl border shadow-sm">
+                                <div class="space-y-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div id="preview-logo" class="w-10 h-10 gradient-bg rounded-full flex items-center justify-center">
+                                            <span class="text-white font-bold">IS</span>
+                                        </div>
+                                        <h5 class="text-lg font-bold gradient-text">Imperial Scents</h5>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <button class="gradient-bg text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                            Botão Principal
+                                        </button>
+                                        <p class="primary-color text-sm">Link de navegação</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Company Settings -->
+                <div class="bg-gray-50 rounded-xl p-6 mb-8 shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-6 gradient-text">Configurações da Empresa</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Company Info -->
+                        <div class="space-y-6">
+                            <div>
+                                <label for="admin-company-name" class="block text-sm font-medium text-gray-700 mb-2">Nome da Empresa</label>
+                                <input type="text" id="admin-company-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="admin-logo-text" class="block text-sm font-medium text-gray-700 mb-2">Iniciais do Logo (se não usar imagem)</label>
+                                <input type="text" id="admin-logo-text" maxlength="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="admin-company-description" class="block text-sm font-medium text-gray-700 mb-2">Descrição da Empresa</label>
+                                <textarea id="admin-company-description" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent" placeholder="Digite a descrição que aparecerá na página inicial..."></textarea>
+                            </div>
+                        </div>
+                       
+                        <!-- Logo Management -->
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Logotipo da Empresa</label>
+                                <div class="flex items-center space-x-4 mb-4">
+                                    <div id="logo-preview" class="w-20 h-20 gradient-bg rounded-full flex items-center justify-center overflow-hidden logo-preview shadow-lg">
+                                        <span id="preview-text" class="text-white font-bold text-2xl">IS</span>
+                                        <img id="preview-image" src="" alt="Preview" class="w-full h-full object-cover hidden">
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-600 mb-2">Preview do logo atual</p>
+                                        <p class="text-xs text-gray-500">Recomendado: 200x200px ou maior</p>
+                                    </div>
+                                </div>
+                               
+                                <div class="space-y-4">
+                                    <!-- File Upload Area -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Carregar Logo do Dispositivo</label>
+                                        <div id="file-upload-area" class="file-upload-area rounded-xl p-8 text-center cursor-pointer">
+                                            <input type="file" id="logo-file-input" accept="image/*" class="hidden">
+                                            <div id="upload-content">
+                                                <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                                                    <svg class="w-8 h-8 text-white" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                </div>
+                                                <p class="text-sm text-gray-600 mb-2">
+                                                    <span class="font-medium primary-color">Clique para selecionar</span> ou arraste uma imagem aqui
+                                                </p>
+                                                <p class="text-xs text-gray-500">PNG, JPG, GIF até 5MB</p>
+                                            </div>
+                                            <div id="file-info" class="hidden">
+                                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                    <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </div>
+                                                <p class="text-sm text-green-600 font-medium mb-1">Arquivo selecionado:</p>
+                                                <p id="file-name" class="text-sm text-gray-600"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                   
+                                    <!-- URL Input -->
+                                    <div>
+                                        <label for="logo-url" class="block text-sm font-medium text-gray-700 mb-2">OU URL da Imagem do Logo</label>
+                                        <input type="url" id="logo-url" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent" placeholder="https://exemplo.com/logo.png">
+                                        <p class="text-xs text-gray-500 mt-1">Cole o link de uma imagem online</p>
+                                    </div>
+                                   
+                                    <div class="flex space-x-3">
+                                        <button onclick="previewLogo()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 text-sm font-medium transition-all">
+                                            Visualizar
+                                        </button>
+                                        <button onclick="removeLogo()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 text-sm font-medium transition-all">
+                                            Usar Iniciais
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                   
+                    <button onclick="updateCompanyInfo()" class="mt-8 gradient-bg text-white px-8 py-3 rounded-lg hover:opacity-90 transition-all font-medium shadow-lg">
+                        Atualizar Informações da Empresa
+                    </button>
+                </div>
+
+                <!-- Product Management -->
+                <div class="bg-gray-50 rounded-xl p-6 mb-8 shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-6 gradient-text">Gerenciar Produtos</h3>
+                   
+                    <!-- Add Product Form -->
+                    <div class="mb-8">
+                        <h4 class="text-lg font-medium mb-4 text-gray-800">Adicionar Novo Produto</h4>
+                        <form id="add-product-form" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="product-name" class="block text-sm font-medium text-gray-700 mb-2">Nome do Perfume</label>
+                                    <input type="text" id="product-name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="product-price" class="block text-sm font-medium text-gray-700 mb-2">Preço</label>
+                                    <input type="text" id="product-price" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent" placeholder="R$ 150,00">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="product-description" class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                                <textarea id="product-description" rows="3" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent" placeholder="Descreva as características e notas do perfume..."></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Imagem do Produto (Arquivo)</label>
+                                    <input type="file" id="product-file-input" accept="image/*" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="product-image" class="block text-sm font-medium text-gray-700 mb-2">OU URL da Imagem</label>
+                                    <input type="url" id="product-image" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent" placeholder="https://exemplo.com/perfume.jpg">
+                                </div>
+                            </div>
+                            <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 font-medium transition-all shadow-lg">
+                                Adicionar Produto
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Products List -->
+                    <div>
+                        <h4 class="text-lg font-medium mb-4 text-gray-800">Produtos Cadastrados</h4>
+                        <div id="admin-products-list" class="space-y-4">
+                            <!-- Products will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="password-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800">Alterar Senha</h3>
+                <p class="text-gray-600 mt-2">Defina uma nova senha de acesso</p>
+            </div>
+            <form id="password-form" class="space-y-4">
+                <div>
+                    <label for="current-password" class="block text-sm font-medium text-gray-700 mb-2">Senha Atual</label>
+                    <input type="password" id="current-password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent">
+                </div>
+                <div>
+                    <label for="new-password" class="block text-sm font-medium text-gray-700 mb-2">Nova Senha</label>
+                    <input type="password" id="new-password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent">
+                </div>
+                <div>
+                    <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-2">Confirmar Nova Senha</label>
+                    <input type="password" id="confirm-password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus-primary focus:border-transparent">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 gradient-bg text-white py-3 rounded-lg hover:opacity-90 transition-all font-medium">
+                        Alterar Senha
+                    </button>
+                    <button type="button" onclick="hidePasswordModal()" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+            <div id="password-error" class="hidden mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg"></div>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    <div id="success-message" class="hidden fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 max-w-sm">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <p class="font-medium" id="success-message-text">Operação realizada com sucesso!</p>
+        </div>
+    </div>
+
+    <script>
+        // Data storage - usando localStorage para armazenar tudo localmente
+        let products = JSON.parse(localStorage.getItem('imperial_scents_products')) || [];
+        let orders = JSON.parse(localStorage.getItem('imperial_scents_orders')) || [];
+        let adminPassword = localStorage.getItem('imperial_scents_password') || 'admin123';
+        let isLoggedIn = false;
+        let companyLogo = localStorage.getItem('imperial_scents_logo') || null;
+        let selectedLogoFile = null;
+        let companyDescription = localStorage.getItem('imperial_scents_description') || "Descubra nossa coleção exclusiva de fragrâncias que despertam os sentidos e marcam sua presença com elegância e sofisticação.";
+        let currentColors = JSON.parse(localStorage.getItem('imperial_scents_colors')) || {
+            primary: '#9333ea',
+            secondary: '#ec4899'
+        };
+
+        // Função para salvar dados no localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('imperial_scents_products', JSON.stringify(products));
+            localStorage.setItem('imperial_scents_orders', JSON.stringify(orders));
+            localStorage.setItem('imperial_scents_password', adminPassword);
+            if (companyLogo) {
+                localStorage.setItem('imperial_scents_logo', companyLogo);
+            }
+            localStorage.setItem('imperial_scents_description', companyDescription);
+            localStorage.setItem('imperial_scents_colors', JSON.stringify(currentColors));
+            localStorage.setItem('imperial_scents_company_name', document.getElementById('company-name').textContent);
+            localStorage.setItem('imperial_scents_logo_text', document.querySelector('#logo-text').textContent);
+        }
+
+        // Color scheme management
+        function setupColorPicker() {
+            const colorOptions = document.querySelectorAll('.color-option');
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    colorOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                   
+                    const primary = this.dataset.primary;
+                    const secondary = this.dataset.secondary;
+                   
+                    updateColorPreview(primary, secondary);
+                });
+            });
+        }
+
+        function updateColorPreview(primary, secondary) {
+            const previewLogo = document.getElementById('preview-logo');
+            const previewTitle = previewLogo.nextElementSibling;
+            const previewButton = document.querySelector('#admin-panel .gradient-bg');
+            const previewLink = document.querySelector('#admin-panel .primary-color');
+           
+            if (previewLogo) {
+                previewLogo.style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
+            }
+            if (previewTitle) {
+                previewTitle.style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
+                previewTitle.style.webkitBackgroundClip = 'text';
+                previewTitle.style.webkitTextFillColor = 'transparent';
+                previewTitle.style.backgroundClip = 'text';
+            }
+            if (previewButton) {
+                previewButton.style.background = `linear-gradient(135deg, ${primary}, ${secondary})`;
+            }
+            if (previewLink) {
+                previewLink.style.color = primary;
+            }
+        }
+
+        function applyColorScheme() {
+            const selectedOption = document.querySelector('.color-option.selected');
+            if (!selectedOption) return;
+           
+            const primary = selectedOption.dataset.primary;
+            const secondary = selectedOption.dataset.secondary;
+           
+            currentColors.primary = primary;
+            currentColors.secondary = secondary;
+           
+            // Update CSS variables
+            document.documentElement.style.setProperty('--primary-color', primary);
+            document.documentElement.style.setProperty('--secondary-color', secondary);
+           
+            // Calculate lighter and darker shades
+            const primaryLight = lightenColor(primary, 10);
+            const secondaryLight = lightenColor(secondary, 10);
+            const primaryDark = darkenColor(primary, 10);
+            const secondaryDark = darkenColor(secondary, 10);
+           
+            document.documentElement.style.setProperty('--primary-light', primaryLight);
+            document.documentElement.style.setProperty('--secondary-light', secondaryLight);
+            document.documentElement.style.setProperty('--primary-dark', primaryDark);
+            document.documentElement.style.setProperty('--secondary-dark', secondaryDark);
+           
+            saveToLocalStorage();
+            showSuccessMessage('Esquema de cores aplicado com sucesso!');
+        }
+
+        function lightenColor(color, percent) {
+            const num = parseInt(color.replace("#", ""), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) + amt;
+            const G = (num >> 8 & 0x00FF) + amt;
+            const B = (num & 0x0000FF) + amt;
+            return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+        }
+
+        function darkenColor(color, percent) {
+            const num = parseInt(color.replace("#", ""), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) - amt;
+            const G = (num >> 8 & 0x00FF) - amt;
+            const B = (num & 0x0000FF) - amt;
+            return "#" + (0x1000000 + (R > 255 ? 255 : R < 0 ? 0 : R) * 0x10000 +
+                (G > 255 ? 255 : G < 0 ? 0 : G) * 0x100 +
+                (B > 255 ? 255 : B < 0 ? 0 : B)).toString(16).slice(1);
+        }
+
+        // Initialize page
+        function init() {
+            loadDataFromLocalStorage();
+            loadProducts();
+            updatePerfumeSelect();
+            updateLogoPreview();
+            setupFileUpload();
+            loadCompanyDescription();
+            setupColorPicker();
+            applySavedColors();
+            
+            // Adicionar alguns produtos de exemplo se estiver vazio
+            if (products.length === 0) {
+                addSampleProducts();
+            }
+        }
+
+        // Adicionar produtos de exemplo
+        function addSampleProducts() {
+            const sampleProducts = [
+                {
+                    id: 1,
+                    name: "Noite de Gala",
+                    price: "R$ 249,90",
+                    description: "Uma fragrância sofisticada com notas de jasmim e âmbar, perfeita para ocasiões especiais.",
+                    image: ""
+                },
+                {
+                    id: 2,
+                    name: "Brisa Marinha",
+                    price: "R$ 199,90",
+                    description: "Frescor e leveza com notas cítricas e aquáticas, ideal para o dia a dia.",
+                    image: ""
+                },
+                {
+                    id: 3,
+                    name: "Sedução Oriental",
+                    price: "R$ 299,90",
+                    description: "Notas exóticas de baunilha e especiarias para momentos de sedução.",
+                    image: ""
+                }
+            ];
+            
+            products = sampleProducts;
+            saveToLocalStorage();
+            loadProducts();
+            updatePerfumeSelect();
+        }
+
+        // Carregar dados do localStorage
+        function loadDataFromLocalStorage() {
+            // Aplicar configurações da empresa
+            const savedCompanyName = localStorage.getItem('imperial_scents_company_name');
+            if (savedCompanyName) {
+                document.getElementById('company-name').textContent = savedCompanyName;
+            }
+            
+            const savedLogoText = localStorage.getItem('imperial_scents_logo_text');
+            if (savedLogoText) {
+                document.getElementById('logo-text').textContent = savedLogoText;
+            }
+            
+            // Aplicar esquema de cores salvo
+            applySavedColors();
+        }
+
+        function applySavedColors() {
+            document.documentElement.style.setProperty('--primary-color', currentColors.primary);
+            document.documentElement.style.setProperty('--secondary-color', currentColors.secondary);
+            
+            const primaryLight = lightenColor(currentColors.primary, 10);
+            const secondaryLight = lightenColor(currentColors.secondary, 10);
+            const primaryDark = darkenColor(currentColors.primary, 10);
+            const secondaryDark = darkenColor(currentColors.secondary, 10);
+            
+            document.documentElement.style.setProperty('--primary-light', primaryLight);
+            document.documentElement.style.setProperty('--secondary-light', secondaryLight);
+            document.documentElement.style.setProperty('--primary-dark', primaryDark);
+            document.documentElement.style.setProperty('--secondary-dark', secondaryDark);
+        }
+
+        // Load company description
+        function loadCompanyDescription() {
+            document.getElementById('company-description').textContent = companyDescription;
+            if (document.getElementById('admin-company-description')) {
+                document.getElementById('admin-company-description').value = companyDescription;
+            }
+        }
+
+        // Setup file upload functionality
+        function setupFileUpload() {
+            const fileUploadArea = document.getElementById('file-upload-area');
+            const fileInput = document.getElementById('logo-file-input');
+
+            if (fileUploadArea && fileInput) {
+                fileUploadArea.addEventListener('click', () => fileInput.click());
+                fileInput.addEventListener('change', handleLogoFileSelect);
+               
+                // Drag and drop for logo
+                fileUploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    fileUploadArea.classList.add('dragover');
+                });
+               
+                fileUploadArea.addEventListener('dragleave', () => {
+                    fileUploadArea.classList.remove('dragover');
+                });
+               
+                fileUploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    fileUploadArea.classList.remove('dragover');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        handleLogoFile(files[0]);
+                    }
+                });
+            }
+        }
+
+        // Handle logo file selection
+        function handleLogoFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleLogoFile(file);
+            }
+        }
+
+        // Handle logo file processing
+        function handleLogoFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showSuccessMessage('Por favor, selecione apenas arquivos de imagem.');
+                return;
+            }
+           
+            if (file.size > 5 * 1024 * 1024) {
+                showSuccessMessage('O arquivo deve ter no máximo 5MB.');
+                return;
+            }
+           
+            selectedLogoFile = file;
+           
+            if (document.getElementById('upload-content') && document.getElementById('file-info')) {
+                document.getElementById('upload-content').classList.add('hidden');
+                document.getElementById('file-info').classList.remove('hidden');
+                document.getElementById('file-name').textContent = file.name;
+            }
+           
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImage = document.getElementById('preview-image');
+                const previewText = document.getElementById('preview-text');
+               
+                if (previewImage && previewText) {
+                    previewImage.src = e.target.result;
+                    previewImage.onload = function() {
+                        previewText.classList.add('hidden');
+                        this.classList.remove('hidden');
+                    };
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Login modal functions
+        function showLoginModal() {
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('admin-password').focus();
+        }
+
+        function hideLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('login-form').reset();
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        // Password modal functions
+        function changePassword() {
+            document.getElementById('password-modal').classList.remove('hidden');
+        }
+
+        function hidePasswordModal() {
+            document.getElementById('password-modal').classList.add('hidden');
+            document.getElementById('password-form').reset();
+            document.getElementById('password-error').classList.add('hidden');
+        }
+
+        // Logo management functions
+        function previewLogo() {
+            const logoUrl = document.getElementById('logo-url').value;
+           
+            if (selectedLogoFile) {
+                return;
+            }
+           
+            if (logoUrl) {
+                const previewImage = document.getElementById('preview-image');
+                const previewText = document.getElementById('preview-text');
+               
+                if (previewImage && previewText) {
+                    previewImage.src = logoUrl;
+                    previewImage.onerror = function() {
+                        showSuccessMessage('Erro ao carregar a imagem. Verifique a URL.');
+                        this.classList.add('hidden');
+                        previewText.classList.remove('hidden');
+                    };
+                    previewImage.onload = function() {
+                        previewText.classList.add('hidden');
+                        this.classList.remove('hidden');
+                    };
+                }
+            }
+        }
+
+        function removeLogo() {
+            const previewImage = document.getElementById('preview-image');
+            const previewText = document.getElementById('preview-text');
+           
+            if (previewImage && previewText) {
+                previewImage.classList.add('hidden');
+                previewText.classList.remove('hidden');
+            }
+            document.getElementById('logo-url').value = '';
+            selectedLogoFile = null;
+           
+            if (document.getElementById('upload-content') && document.getElementById('file-info')) {
+                document.getElementById('upload-content').classList.remove('hidden');
+                document.getElementById('file-info').classList.add('hidden');
+            }
+            document.getElementById('logo-file-input').value = '';
+        }
+
+        function updateLogoPreview() {
+            const logoText = document.getElementById('logo-text');
+            const logoImage = document.getElementById('logo-image');
+            const previewText = document.getElementById('preview-text');
+            const previewImage = document.getElementById('preview-image');
+           
+            if (logoText && logoImage && previewText && previewImage) {
+                if (companyLogo) {
+                    logoImage.src = companyLogo;
+                    logoImage.classList.remove('hidden');
+                    logoText.classList.add('hidden');
+                   
+                    previewImage.src = companyLogo;
+                    previewImage.classList.remove('hidden');
+                    previewText.classList.add('hidden');
+                } else {
+                    logoImage.classList.add('hidden');
+                    logoText.classList.remove('hidden');
+                   
+                    previewImage.classList.add('hidden');
+                    previewText.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Login form handler
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+           
+            const password = document.getElementById('admin-password').value;
+           
+            if (password === adminPassword) {
+                isLoggedIn = true;
+                hideLoginModal();
+                showAdminPanel();
+            } else {
+                const errorDiv = document.getElementById('login-error');
+                const modal = document.querySelector('#login-modal .bg-white');
+                if (errorDiv && modal) {
+                    errorDiv.classList.remove('hidden');
+                    modal.classList.add('shake');
+                    setTimeout(() => modal.classList.remove('shake'), 500);
+                }
+            }
+        });
+
+        // Password change form handler
+        document.getElementById('password-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+           
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const errorDiv = document.getElementById('password-error');
+           
+            if (currentPassword !== adminPassword) {
+                if (errorDiv) {
+                    errorDiv.textContent = 'Senha atual incorreta.';
+                    errorDiv.classList.remove('hidden');
+                }
+                return;
+            }
+           
+            if (newPassword.length < 6) {
+                if (errorDiv) {
+                    errorDiv.textContent = 'A nova senha deve ter pelo menos 6 caracteres.';
+                    errorDiv.classList.remove('hidden');
+                }
+                return;
+            }
+           
+            if (newPassword !== confirmPassword) {
+                if (errorDiv) {
+                    errorDiv.textContent = 'As senhas não coincidem.';
+                    errorDiv.classList.remove('hidden');
+                }
+                return;
+            }
+           
+            adminPassword = newPassword;
+            saveToLocalStorage();
+            hidePasswordModal();
+            showSuccessMessage('Senha alterada com sucesso!');
+        });
+
+        // Show admin panel
+        function showAdminPanel() {
+            const panel = document.getElementById('admin-panel');
+            const mainContent = document.getElementById('main-content');
+           
+            if (panel && mainContent) {
+                panel.classList.remove('hidden');
+                mainContent.style.display = 'none';
+                loadAdminData();
+            }
+        }
+
+        // Logout
+        function logout() {
+            isLoggedIn = false;
+            const panel = document.getElementById('admin-panel');
+            const mainContent = document.getElementById('main-content');
+           
+            if (panel && mainContent) {
+                panel.classList.add('hidden');
+                mainContent.style.display = 'block';
+            }
+        }
+
+        // Load admin data
+        function loadAdminData() {
+            if (document.getElementById('admin-company-name')) {
+                document.getElementById('admin-company-name').value = document.getElementById('company-name').textContent;
+                document.getElementById('admin-logo-text').value = document.querySelector('#logo-text').textContent;
+                document.getElementById('admin-company-description').value = companyDescription;
+                document.getElementById('logo-url').value = (companyLogo && !companyLogo.startsWith('data:')) ? companyLogo : '';
+                updateLogoPreview();
+                loadOrders();
+                loadAdminProducts();
+            }
+        }
+
+        // Update company information
+        function updateCompanyInfo() {
+            const newName = document.getElementById('admin-company-name').value;
+            const newLogoText = document.getElementById('admin-logo-text').value;
+            const newDescription = document.getElementById('admin-company-description').value;
+            const logoUrl = document.getElementById('logo-url').value;
+           
+            if (newName) {
+                document.getElementById('company-name').textContent = newName;
+                localStorage.setItem('imperial_scents_company_name', newName);
+            }
+           
+            if (newLogoText) {
+                document.querySelector('#logo-text').textContent = newLogoText.toUpperCase();
+                document.getElementById('preview-text').textContent = newLogoText.toUpperCase();
+                localStorage.setItem('imperial_scents_logo_text', newLogoText.toUpperCase());
+            }
+
+            if (newDescription) {
+                companyDescription = newDescription;
+                document.getElementById('company-description').textContent = companyDescription;
+                localStorage.setItem('imperial_scents_description', companyDescription);
+            }
+           
+            if (selectedLogoFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    companyLogo = e.target.result;
+                    updateLogoPreview();
+                    localStorage.setItem('imperial_scents_logo', companyLogo);
+                    saveToLocalStorage();
+                };
+                reader.readAsDataURL(selectedLogoFile);
+            } else if (logoUrl) {
+                companyLogo = logoUrl;
+                updateLogoPreview();
+                localStorage.setItem('imperial_scents_logo', companyLogo);
+                saveToLocalStorage();
+            } else {
+                companyLogo = null;
+                updateLogoPreview();
+                localStorage.removeItem('imperial_scents_logo');
+                saveToLocalStorage();
+            }
+           
+            showSuccessMessage('Informações da empresa atualizadas com sucesso!');
+        }
+
+        // Load products
+        function loadProducts() {
+            const grid = document.getElementById('products-grid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+           
+            products.forEach(product => {
+                const productCard = createProductCard(product);
+                grid.appendChild(productCard);
+            });
+        }
+
+        // Load admin products
+        function loadAdminProducts() {
+            const list = document.getElementById('admin-products-list');
+            if (!list) return;
+            
+            list.innerHTML = '';
+           
+            if (products.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500">Nenhum produto cadastrado ainda.</p>
+                    </div>
+                `;
+                return;
+            }
+           
+            products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-all flex justify-between items-center';
+                productDiv.innerHTML = `
+                    <div class="flex-1">
+                        <h5 class="font-semibold text-lg text-gray-800">${product.name}</h5>
+                        <p class="primary-color font-medium">${product.price}</p>
+                        <p class="text-sm text-gray-500 mt-2">${product.description.substring(0, 120)}...</p>
+                    </div>
+                    <button onclick="deleteProduct(${product.id})" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 ml-6 transition-all font-medium">
+                        Excluir
+                    </button>
+                `;
+                list.appendChild(productDiv);
+            });
+        }
+
+        // Create product card
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'perfume-card bg-white rounded-2xl shadow-lg overflow-hidden';
+           
+            const imageHtml = product.image ?
+                `<img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover" onerror="this.src=''; this.alt='Imagem não disponível'; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                 <div class="w-full h-64 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center" style="display: none;">
+                     <div class="text-center">
+                         <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-3">
+                             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                             </svg>
+                         </div>
+                         <span class="text-gray-600 text-sm">Sem Imagem</span>
+                     </div>
+                 </div>` :
+                `<div class="w-full h-64 hero-bg flex items-center justify-center">
+                     <div class="text-center">
+                         <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-3">
+                             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                             </svg>
+                         </div>
+                         <span class="text-gray-600 text-sm">Sem Imagem</span>
+                     </div>
+                 </div>`;
+           
+            card.innerHTML = `
+                ${imageHtml}
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">${product.name}</h3>
+                    <p class="text-gray-600 mb-4 leading-relaxed">${product.description}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-2xl font-bold primary-color">${product.price}</span>
+                        <button onclick="selectPerfume('${product.name}')" class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90 transition-all font-medium">
+                            Comprar
+                        </button>
+                    </div>
+                </div>
+            `;
+           
+            return card;
+        }
+
+        // Select perfume for order
+        function selectPerfume(perfumeName) {
+            const select = document.getElementById('perfume-select');
+            if (select) {
+                select.value = perfumeName;
+                document.getElementById('contact').scrollIntoView({behavior: 'smooth'});
+                document.getElementById('customer-name').focus();
+            }
+        }
+
+        // Update perfume select options
+        function updatePerfumeSelect() {
+            const select = document.getElementById('perfume-select');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Selecione um perfume</option>';
+           
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.name;
+                option.textContent = `${product.name} - ${product.price}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Add product
+        document.getElementById('add-product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+           
+            const name = document.getElementById('product-name').value;
+            const price = document.getElementById('product-price').value;
+            const description = document.getElementById('product-description').value;
+            const imageUrl = document.getElementById('product-image').value;
+            const imageFile = document.getElementById('product-file-input').files[0];
+           
+            const newProduct = {
+                id: Date.now(),
+                name: name,
+                price: price,
+                description: description,
+                image: null
+            };
+           
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    newProduct.image = e.target.result;
+                    products.push(newProduct);
+                    saveToLocalStorage();
+                    loadProducts();
+                    updatePerfumeSelect();
+                    loadAdminProducts();
+                    showSuccessMessage('Produto adicionado com sucesso!');
+                };
+                reader.readAsDataURL(imageFile);
+            } else if (imageUrl) {
+                newProduct.image = imageUrl;
+                products.push(newProduct);
+                saveToLocalStorage();
+                loadProducts();
+                updatePerfumeSelect();
+                loadAdminProducts();
+                showSuccessMessage('Produto adicionado com sucesso!');
+            } else {
+                products.push(newProduct);
+                saveToLocalStorage();
+                loadProducts();
+                updatePerfumeSelect();
+                loadAdminProducts();
+                showSuccessMessage('Produto adicionado com sucesso!');
+            }
+           
+            this.reset();
+        });
+
+        // Delete product
+        function deleteProduct(productId) {
+            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                products = products.filter(product => product.id !== productId);
+                saveToLocalStorage();
+                loadProducts();
+                updatePerfumeSelect();
+                loadAdminProducts();
+                showSuccessMessage('Produto excluído com sucesso!');
+            }
+        }
+
+        // Handle order form - AGORA SALVA LOCALMENTE
+        document.getElementById('order-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+           
+            const submitBtn = document.getElementById('submit-order-btn');
+            const originalText = submitBtn.innerHTML;
+           
+            // Show loading state
+            submitBtn.innerHTML = '<div class="loading"></div> Enviando...';
+            submitBtn.disabled = true;
+           
+            const formData = new FormData(this);
+            const order = {
+                id: Date.now(),
+                customerName: formData.get('customerName'),
+                customerEmail: formData.get('customerEmail'),
+                customerPhone: formData.get('customerPhone'),
+                perfumeSelect: formData.get('perfumeSelect'),
+                orderMessage: formData.get('orderMessage'),
+                date: new Date().toLocaleString('pt-BR'),
+                status: 'pending'
+            };
+
+            // Validar se todos os campos estão preenchidos
+            if (!order.customerName || !order.customerEmail || !order.customerPhone || !order.perfumeSelect || !order.orderMessage) {
+                showSuccessMessage('Por favor, preencha todos os campos obrigatórios.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+           
+            try {
+                // Salvar pedido localmente
+                orders.push(order);
+                saveToLocalStorage();
+               
+                this.reset();
+               
+                // Restore button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+               
+                showSuccessMessage('Pedido realizado com sucesso! Entraremos em contato em breve.');
+            } catch (error) {
+                console.error('Erro ao processar pedido:', error);
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                showSuccessMessage('Erro ao processar pedido. Tente novamente.');
+            }
+        });
+
+        // Load orders in admin
+        function loadOrders(filter = 'all') {
+            const ordersList = document.getElementById('orders-list');
+            if (!ordersList) return;
+           
+            let filteredOrders = orders;
+            
+            if (filter !== 'all') {
+                filteredOrders = orders.filter(order => order.status === filter);
+            }
+           
+            if (filteredOrders.length === 0) {
+                ordersList.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500">Nenhum pedido ${filter !== 'all' ? 'com este status' : ''} recebido ainda.</p>
+                    </div>
+                `;
+                return;
+            }
+           
+            ordersList.innerHTML = '';
+           
+            filteredOrders.forEach(order => {
+                const orderCard = document.createElement('div');
+                orderCard.className = 'bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-all';
+                orderCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="font-semibold text-lg text-gray-800">Pedido #${order.id}</h4>
+                            <span class="text-sm text-gray-500">${order.date}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select onchange="updateOrderStatus(${order.id}, this.value)" class="text-sm px-3 py-1 rounded-full border">
+                                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendente</option>
+                                <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confirmado</option>
+                                <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Concluído</option>
+                                <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelado</option>
+                            </select>
+                            <button onclick="deleteOrder(${order.id})" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 text-sm">
+                                Excluir
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        <div class="space-y-2">
+                            <p><span class="font-medium text-gray-700">Cliente:</span> ${order.customerName}</p>
+                            <p><span class="font-medium text-gray-700">Email:</span> ${order.customerEmail}</p>
+                            <p><span class="font-medium text-gray-700">Telefone:</span> ${order.customerPhone}</p>
+                        </div>
+                        <div>
+                            <p><span class="font-medium text-gray-700">Perfume:</span> ${order.perfumeSelect}</p>
+                            <p><span class="font-medium text-gray-700">Status:</span> 
+                                <span class="px-2 py-1 rounded-full text-xs status-${order.status}">
+                                    ${getStatusText(order.status)}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="font-medium text-gray-700 mb-2">Mensagem:</p>
+                        <p class="text-gray-600 bg-gray-50 p-3 rounded-lg">${order.orderMessage}</p>
+                    </div>
+                `;
+                ordersList.appendChild(orderCard);
+            });
+
+            // Atualizar contador
+            document.getElementById('orders-count').textContent = orders.length;
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Pendente',
+                'confirmed': 'Confirmado',
+                'completed': 'Concluído',
+                'cancelled': 'Cancelado'
+            };
+            return statusMap[status] || 'Pendente';
+        }
+
+        function filterOrders(status) {
+            loadOrders(status);
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            const orderIndex = orders.findIndex(order => order.id === orderId);
+            if (orderIndex !== -1) {
+                orders[orderIndex].status = newStatus;
+                saveToLocalStorage();
+                showSuccessMessage('Status do pedido atualizado com sucesso!');
+                loadOrders(); // Recarregar para mostrar o filtro atual
+            }
+        }
+
+        function deleteOrder(orderId) {
+            if (confirm('Tem certeza que deseja excluir este pedido?')) {
+                orders = orders.filter(order => order.id !== orderId);
+                saveToLocalStorage();
+                showSuccessMessage('Pedido excluído com sucesso!');
+                loadOrders();
+            }
+        }
+
+        // Export orders to CSV
+        function exportOrders() {
+            if (orders.length === 0) {
+                showSuccessMessage('Não há pedidos para exportar.');
+                return;
+            }
+
+            const csvHeaders = ['ID', 'Data', 'Cliente', 'Email', 'Telefone', 'Perfume', 'Status', 'Mensagem'];
+            const csvData = orders.map(order => [
+                order.id,
+                order.date,
+                order.customerName,
+                order.customerEmail,
+                order.customerPhone,
+                order.perfumeSelect,
+                getStatusText(order.status),
+                `"${order.orderMessage.replace(/"/g, '""')}"`
+            ]);
+
+            const csvContent = [csvHeaders, ...csvData]
+                .map(row => row.join(','))
+                .join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `pedidos_imperial_scents_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showSuccessMessage('Pedidos exportados com sucesso!');
+        }
+
+        // Show success message
+        function showSuccessMessage(message) {
+            const successMsg = document.getElementById('success-message');
+            const successText = document.getElementById('success-message-text');
+            
+            if (!successMsg || !successText) return;
+            
+            // Verificar se é uma mensagem de erro
+            if (message.includes('Erro') || message.includes('problema') || message.includes('incorreto')) {
+                successMsg.classList.remove('bg-green-500');
+                successMsg.classList.add('bg-red-500');
+            } else {
+                successMsg.classList.remove('bg-red-500');
+                successMsg.classList.add('bg-green-500');
+            }
+            
+            successText.textContent = message;
+            successMsg.classList.remove('hidden');
+           
+            setTimeout(() => {
+                successMsg.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+        });
+    </script>
+</body>
+</html>
